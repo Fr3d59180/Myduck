@@ -1,14 +1,13 @@
 #!/bin/bash
-# Duck DNS setup version 1.0
+# Duck DNS setup version 1.1
 # by The Fan Club - November 2013
-#
-# This script should work on most unix/linux based systems
-# that use bash and have cron installed
-# Tested on Ubuntu, Raspbian, and OSX
+#by Djang0Pepper 2020 for raspbian BUSTER
+
+# Raspbian
 #
 # For more information about Duck DNS - http://www.duckdns.org/
 #
-#script fork from https://github.com/aesqe
+#script updated from https://github.com/aesqe
 
 userHome=$(eval echo ~${USER})
 echo -ne "user is : "
