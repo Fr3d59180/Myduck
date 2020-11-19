@@ -1,1 +1,1 @@
-###simply install a crontab script for duckdns
+### simply install a crontab script for duckdns
