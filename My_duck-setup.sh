@@ -8,39 +8,66 @@
 # For more information about Duck DNS - http://www.duckdns.org/
 #
 #script updated from https://github.com/aesqe
+RED='\033[0;31m'        #RED
+ORANGE='\033[0;33m'     #ORANGE
+BLACK='\033[0;30m'      # Black
+GREEN='\033[0;32m'      # Green
+BLUE='\033[0;34m'       # Blue
+PURPLE='\033[0;35m'     # Purple
+CYAN='\033[0;36m'       # Cyan
+WHITE='\033[0;37m'      # White
+NC='\033[0m'            # No Color
 
 userHome=$(eval echo ~${USER})
 echo -ne "user is : "
-echo  $USER
+echo -e "${RED} $USER${NC}"
 duckPath="/home/pi/duckdns"
 echo -ne "running path is : "
-echo $duckPath
+echo -e "${RED} $duckPath ${NC}"
 duckLog="$duckPath/duck.log"
 duckScript="$duckPath/duck.sh"
 echo " "
-echo "* Duck DNS setup by The Fan Club, update Djang0Pepper for raspbian duster *"
+echo -e "* Duck DNS setup by The Fan Club, update ${GREEN}Djang0Pepper ${NC}for raspbian duster *"
 echo "version 1.1"
 echo
 
 # Remove Option
 case "$1" in
 	remove)
-	    echo -ne "Un Install Duck DNS (Y/N) [Y] :"
-      read confirmCont
-      if [ "$confirmCont" != "Y" ] && [ "$confirmCont" != "Yes" ] && [ "$confirmCont" != "" ] && [ "$confirmCont" != "y" ]
-        then
-          echo "Setup cancelled. Program will now quit."
-          exit 0
-      fi
-      # Remove Duck DNS files
-      rm -R $duckPath
-      # Remove Cron Job
-      crontab -l >/tmp/crontab.tmp
-      sed -e 's/\(^.*duck.sh$\)//g' /tmp/crontab.tmp  | crontab
-      rm /tmp/crontab.tmp
-      echo "Duck DNS removed"
-      exit 0
-	;;
+		echo -ne "Un Install Duck DNS (Y/N) [Y] :"
+		read confirmCont
+		if [ "$confirmCont" != "Y" ] && [ "$confirmCont" != "Yes" ] && [ "$confirmCont" != "" ] && [ "$confirmCont" != "y" ]
+		then
+		  echo "Setup cancelled. Program will now quit."
+		  exit 0
+		fi
+		# Remove Duck DNS files
+		rm -R $duckPath
+		# Remove Cron Job
+		crontab -l >/tmp/crontab.tmp
+		sed -e 's/\(^.*duck.sh$\)//g' /tmp/crontab.tmp  | crontab
+		rm /tmp/crontab.tmp
+		echo "Duck DNS removed"
+		exit 0
+		;;
+       test)
+		echo -ne "Check Duck DNS "
+		# Run now
+		$duckScript
+		# Response
+		duckResponse=$( cat $duckLog )
+		echo -e "${GREEN} Duck DNS server response : $duckResponse"
+		if [ "$duckResponse" != "OK" ]
+		then
+		  echo -e "${ORANGE}[Error] Duck DNS did not update correctly. Please check your settings or run the setup again.${NC}"
+		else
+		  echo " "
+                  crontab -l
+		  echo " "
+		  echo -e "${GREEN}Duck DNS check complete.${NC}"
+		fi
+
+		exit
 esac
 
 # Main Install ***
@@ -51,7 +78,7 @@ mySubDomain="${domainName%%.*}"
 duckDomain="${domainName#*.}"
 if [ "$duckDomain" != "duckdns.org" ] && [ "$duckDomain" != "$mySubDomain" ] || [ "$mySubDomain" = "" ]
 then
-  echo "[Error] Invalid domain name. Program will now quit."
+  echo "${ORANGE}[Error] Invalid domain name. Program will now quit.${NC}"
   exit 0
 fi
 # Get Token value
@@ -60,14 +87,14 @@ echo -ne "Enter your Duck DNS Token value : "
 read duckToken
 echo
 # Display Confirmation
-echo "Your fully qualified domain name will be : $mySubDomain.duckdns.org"
-echo "Your token value is : $duckToken"
+echo -e "Your fully qualified domain name will be : ${BLUE} $mySubDomain.duckdns.org${NC}"
+echo -e "Your token value is : ${BLUE}$duckToken${NC}"
 echo
 echo -ne "Enter Y or Yes to continue [Y] :"
 read confirmCont
 if [ "$confirmCont" != "Y" ] && [ "$confirmCont" != "Yes" ] && [ "$confirmCont" != "" ] && [ "$confirmCont" != "y" ]
 then
-  echo "Setup cancelled. Program will now quit."
+  echo -e "${RED}Setup cancelled. Program will now quit.${NC}"
   exit 0
 fi
 # Create duck dir
@@ -75,20 +102,26 @@ if [ ! -d "$duckPath" ]
 then
   sudo mkdir $duckPath
 else
-  echo $duckPath
+  echo -en "${GREEN}$duckPath${NC}"
 fi
 # Create duck script file
-echo "echo url=\"https://www.duckdns.org/update?domains=$mySubDomain&token=$duckToken&ip=\" | curl -k -o $duckLog -K -" > $duckScript
+echo  "echo url=\"https://www.duckdns.org/update?domains=$mySubDomain&token=$duckToken&ip=\" | curl -k -o $duckLog -K -" > $duckScript
 chmod 700 $duckScript
-echo "Duck Script file created"
+echo -e "${GREEN}Duck Script file created${NC} "
 # Create Conjob
 # Check if job already exists
 checkCron=$( crontab -l | grep -c $duckScript )
 if [ "$checkCron" -eq 0 ]
 then
   # Add cronjob
-  echo "Adding Cron job for Duck DNS"
-  crontab -l | { cat; echo "*/5 * * * * $duckScript"; } | crontab -
+  echo " "
+  echo -e "${GREEN}Adding Cron job for Duck DNS${NC}"
+	  crontab -l | { cat; echo "*/5 * * * * $duckScript"; } | crontab -
+else
+  echo " "
+  echo -en "${ORANGE}Cron job for Duck DNS exist : "
+	  crontab -l 
+  echo -e "${NC}"
 fi
 # Test Setup
 echo
@@ -103,11 +136,11 @@ fi
 $duckScript
 # Response
 duckResponse=$( cat $duckLog )
-echo "Duck DNS server response : $duckResponse"
+echo -e "${GREEN} Duck DNS server response : $duckResponse ${NC}"
 if [ "$duckResponse" != "OK" ]
 then
-  echo "[Error] Duck DNS did not update correctly. Please check your settings or run the setup again."
+  echo -e "${ORANGE}[Error] Duck DNS did not update correctly. Please check your settings or run the setup again.${NC}"
 else
-  echo "Duck DNS setup complete."
+  echo -e "${PURPLE}Script complete.${NC}"
 fi
 exit
