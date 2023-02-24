@@ -98,16 +98,45 @@ then
   exit 0
 fi
 # Create duck dir
+ echo -en "$duckPath"
 if [ ! -d "$duckPath" ]
 then
   sudo mkdir $duckPath
+  sudo chown pi:pi $duckPath
+  echo -e "${GREEN} $Path PATH CREATED ${NC}"
 else
-  echo -en "${GREEN}$duckPath${NC}"
+  echo -e "${GREEN} $Path PATH EXIST ${NC}"
 fi
-# Create duck script file
-echo  "echo url=\"https://www.duckdns.org/update?domains=$mySubDomain&token=$duckToken&ip=\" | curl -k -o $duckLog -K -" > $duckScript
-chmod 700 $duckScript
-echo -e "${GREEN}Duck Script file created${NC} "
+
+# Create duck log
+echo -en "$duckLog"
+if [ ! -f "$duckPath/$duckLog" ]
+then
+  touch $duckLog
+  echo "0"  >> $duckLog
+
+  echo -e "${GREEN} LOG CREATED ${NC}"
+else
+  echo -e "${GREEN} LOG EXIST ${NC}"
+fi
+
+# Create duck script
+echo -en "$duckScript"
+if [ ! -f "$duckPath/$duckScript" ]
+then
+  echo -e "${GREEN} SCRIPT CREATED ${NC}"
+  touch $duckScript
+  chmod 755 $duckScript
+  echo  "echo url=\"https://www.duckdns.org/update?domains=$mySubDomain&token=$duckToken&ip=\" | curl -k -o $duckLog -K -" > $duckScript
+else
+  echo -e "${GREEN} SCRIPT ALREADY EXIST ${NC}"
+fi
+
+## Create duck script file
+##echo  "echo url=\"https://www.duckdns.org/update?domains=$mySubDomain&token=$duckToken&ip=\" | curl -k -o $duckLog -K -" > $duckScript
+##chmod 700 $duckScript
+##echo -e "${GREEN}Duck Script file created${NC} "
+
 # Create Conjob
 # Check if job already exists
 checkCron=$( crontab -l | grep -c $duckScript )
@@ -120,9 +149,10 @@ then
 else
   echo " "
   echo -en "${ORANGE}Cron job for Duck DNS exist : "
-	  crontab -l 
+	  crontab -l
   echo -e "${NC}"
 fi
+
 # Test Setup
 echo
 echo -ne "Update and Test your Duck DNS now ? Y/N [Y]: "
